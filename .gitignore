@@ -1,0 +1,31 @@
+# Python / virtual env
+.venv/
+__pycache__/
+*.pyc
+
+# FastAPI artifacts
+ai-service/.venv/
+ai-service/.pytest_cache/
+
+# Gradle caches
+.gradle/
+
+# OFBiz build/runtime outputs
+ofbiz-framework/runtime/
+ofbiz-framework/output/
+ofbiz-framework/logs/
+ofbiz-framework/indexes/
+ofbiz-framework/tmp/
+ofbiz-framework/tempfiles/
+ofbiz-framework/catalina/
+
+# Local logs at repo root
+ofbiz-server.log
+ofbiz-server.err
+
+# OS noise
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
+.gitconfig
