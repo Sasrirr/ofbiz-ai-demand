@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service-resource>
+  <model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/service-config-1.0.xsd">
+    <description>AI demand forecast integration</description>
+
+    <service name="predictDemandForProduct" default-entity-name="DemandForecast"
+             engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
+             invoke="predictDemandForProduct" auth="false" export="true">
+      <attribute name="productId" mode="IN" type="String" optional="false"/>
+      <attribute name="horizonDays" mode="IN" type="Integer" optional="true"/>
+      <attribute name="forecastId" mode="OUT" type="String"/>
+      <attribute name="avgDaily" mode="OUT" type="Double"/>
+      <attribute name="total" mode="OUT" type="Double"/>
+      <attribute name="runDate" mode="OUT" type="Timestamp"/>
+    </service>
+
+    <service name="predictDemandForProducts" default-entity-name="DemandForecast"
+             engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
+             invoke="predictDemandForProducts" auth="false" export="true">
+      <attribute name="productIds" mode="IN" type="List" optional="false"/>
+      <attribute name="horizonDays" mode="IN" type="Integer" optional="true"/>
+      <attribute name="results" mode="OUT" type="List"/>
+    </service>
+  </model>
+</service-resource>

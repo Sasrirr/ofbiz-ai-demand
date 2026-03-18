@@ -5013,8 +5013,21 @@ under the License.
         <relation type="one" fk-name="PRDS_TS_PGC" rel-entity-name="TelecomGatewayConfig">
             <key-map field-name="telecomGatewayConfigId"/>
         </relation>
-        <relation type="one" fk-name="PRDS_TS_CUS_MET" rel-entity-name="CustomMethod">
-            <key-map field-name="telecomCustomMethodId" rel-field-name="customMethodId"/>
-        </relation>
-    </entity>
+    <relation type="one" fk-name="PRDS_TS_CUS_MET" rel-entity-name="CustomMethod">
+        <key-map field-name="telecomCustomMethodId" rel-field-name="customMethodId"/>
+    </relation>
+  </entity>
+
+  <!-- AI demand forecasting storage -->
+  <entity entity-name="DemandForecast" package-name="org.apache.ofbiz.product.ai" title="Demand Forecast">
+    <field name="forecastId" type="id" not-null="true"/>
+    <field name="productId" type="id" not-null="true"/>
+    <field name="horizonDays" type="numeric" not-null="true"/>
+    <field name="avgDaily" type="floating-point" not-null="true"/>
+    <field name="total" type="floating-point" not-null="true"/>
+    <field name="runDate" type="date-time" not-null="true"/>
+    <field name="source" type="short-varchar"/>
+    <prim-key field="forecastId"/>
+    <relation type="one" fk-name="DF_PRD" rel-entity-name="Product" rel-field-name="productId"/>
+  </entity>
 </entitymodel>
