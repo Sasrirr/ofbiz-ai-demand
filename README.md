@@ -32,6 +32,27 @@ This repo integrates Apache OFBiz with a production‑ready AI demand forecastin
    - `-Dai.demand.apiKey=<your-key>`
    - `-Dai.demand.timeoutMs=8000`
 
+## Render Deployment
+Use Render for the FastAPI `ai-service`, not the full OFBiz runtime.
+
+1. Push this repo to GitHub/GitLab.
+2. In Render, create a Blueprint from the repo so Render reads [`render.yaml`](./render.yaml).
+3. When prompted, set `AI_API_KEY`.
+4. After the service is created, open the attached disk shell path and make sure these files exist under `/data/ofbiz/runtime/data/export/`:
+   - `order_lines.csv`
+   - `products.csv`
+   - `product_facility.csv`
+   - `inventory_items.csv`
+5. Point OFBiz at Render:
+   - `-Dai.demand.url=https://<your-render-service>.onrender.com`
+   - `-Dai.demand.apiKey=<your-key>`
+   - `-Dai.demand.timeoutMs=8000`
+
+Important notes:
+- Render persistent disks are only available on paid instances, so the Blueprint uses `starter`.
+- The service starts even before data is uploaded, but `/predict-demand` returns `503` until exports are present and the model is loaded.
+- After uploading fresh CSV exports, call `POST /reload` with `X-API-Key` so the service reloads the model without a redeploy.
+
 ## UI
 Catalog app menu:
 - `Demand Forecasts`: `/catalog/control/demandForecasts`

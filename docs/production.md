@@ -9,6 +9,25 @@ This document summarizes how to run the OFBiz + AI demand stack in production.
 3. Ensure `AI_OFBIZ_BASE_DIR` points to the OFBiz export directory.
 4. Optional: set `AI_RATE_LIMIT_PER_MIN` to protect the API.
 
+## Render
+Use Render to deploy the AI service as a Docker web service with a persistent disk.
+
+1. Connect the repository in Render and deploy the Blueprint from [`render.yaml`](../render.yaml).
+2. Provide `AI_API_KEY` when Render prompts for unsynced environment variables.
+3. Keep the disk mounted at `/data/ofbiz`, which means OFBiz exports must be uploaded to:
+   - `/data/ofbiz/runtime/data/export/order_lines.csv`
+   - `/data/ofbiz/runtime/data/export/products.csv`
+   - `/data/ofbiz/runtime/data/export/product_facility.csv`
+   - `/data/ofbiz/runtime/data/export/inventory_items.csv`
+4. Set OFBiz JVM properties to the public Render URL:
+   - `-Dai.demand.url=https://<service-name>.onrender.com`
+   - `-Dai.demand.apiKey=<your-key>`
+5. After refreshing export CSVs on the mounted disk, call `POST /reload` with `X-API-Key` to refresh the model.
+
+Notes:
+- Persistent disks require a paid Render web service.
+- The health endpoint returns `degraded` until export data is present, which is expected on first deploy.
+
 ## OFBiz Configuration
 Set JVM properties (examples):
 - `-Dai.demand.url=http://ai-demand:8000`

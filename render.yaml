@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: ofbiz-ai-demand
+    runtime: docker
+    plan: starter
+    region: singapore
+    rootDir: ai-service
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    healthCheckPath: /health
+    disk:
+      name: ofbiz-export-data
+      mountPath: /data/ofbiz
+      sizeGB: 10
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: AI_OFBIZ_BASE_DIR
+        value: /data/ofbiz
+      - key: AI_WINDOW_DAYS
+        value: "30"
+      - key: AI_MAX_HORIZON_DAYS
+        value: "365"
+      - key: AI_MODEL_VERSION
+        value: "0.1.0"
+      - key: AI_RATE_LIMIT_PER_MIN
+        value: "60"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: AI_API_KEY
+        sync: false
