@@ -28,4 +28,9 @@ under the License.
              location="component://product/src/main/groovy/org/apache/ofbiz/product/shipment/PicklistServices.groovy" invoke="migrateOldPicklistStatusHistoryToPickListStatus" auth="true">
         <description>Migration service to convert entries from OldPicklistStatusHistory to new Entity PickListStatus</description>
     </service>
+
+    <service name="upgradeDemandForecastDefaults" engine="groovy"
+             location="component://product/groovy/ai/UpgradeDemandForecast.groovy" invoke="upgradeDemandForecastDefaults" auth="true">
+        <description>Backfill new DemandForecast fields with defaults</description>
+    </service>
 </services>

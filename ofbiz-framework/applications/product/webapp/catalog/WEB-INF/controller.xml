@@ -56,6 +56,30 @@ under the License.
         <response name="success" type="view" value="main"/>
     </request-map>
 
+    <request-map uri="demandForecasts">
+        <security https="true" auth="true"/>
+        <response name="success" type="view" value="DemandForecasts"/>
+    </request-map>
+
+    <request-map uri="runDemandExport">
+        <security https="true" auth="true"/>
+        <event type="service" path="" invoke="exportDemandDataBundle"/>
+        <response name="success" type="view" value="DemandForecasts"/>
+        <response name="error" type="view" value="DemandForecasts"/>
+    </request-map>
+
+    <request-map uri="runDemandForecasts">
+        <security https="true" auth="true"/>
+        <event type="service" path="" invoke="enqueueDemandForecastsPersistent"/>
+        <response name="success" type="view" value="DemandForecasts"/>
+        <response name="error" type="view" value="DemandForecasts"/>
+    </request-map>
+
+    <request-map uri="demandForecastDashboard">
+        <security https="true" auth="true"/>
+        <response name="success" type="view" value="DemandForecastDashboard"/>
+    </request-map>
+
     <!-- ================ Misc. Requests ================= -->
     <request-map uri="FastLoadCache">
         <security https="true" auth="true"/>
@@ -3291,5 +3315,7 @@ under the License.
     <view-map name="ListPeopleRejected" type="screen" page="component://product/widget/catalog/ImageManagementScreens.xml#ListPeopleRejected"/>
     <view-map name="LookupImageFrame" type="screen" page="component://product/widget/catalog/ImageManagementScreens.xml#LookupImageFrame"/>
     <view-map name="ImageResize" type="screen" page="component://product/widget/catalog/ImageManagementScreens.xml#ImageResize"/>
+    <view-map name="DemandForecasts" type="screen" page="component://product/widget/catalog/DemandForecastScreens.xml#DemandForecasts"/>
+    <view-map name="DemandForecastDashboard" type="screen" page="component://product/widget/catalog/DemandForecastDashboardScreens.xml#DemandForecastDashboard"/>
     <!-- end of view mappings -->
 </site-conf>

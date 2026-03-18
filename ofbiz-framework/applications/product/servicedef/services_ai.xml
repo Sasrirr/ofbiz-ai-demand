@@ -6,7 +6,7 @@
 
     <service name="predictDemandForProduct" default-entity-name="DemandForecast"
              engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
-             invoke="predictDemandForProduct" auth="false" export="true">
+             invoke="predictDemandForProduct" auth="true" export="true">
       <attribute name="productId" mode="IN" type="String" optional="false"/>
       <attribute name="horizonDays" mode="IN" type="Integer" optional="true"/>
       <attribute name="forecastId" mode="OUT" type="String"/>
@@ -17,10 +17,83 @@
 
     <service name="predictDemandForProducts" default-entity-name="DemandForecast"
              engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
-             invoke="predictDemandForProducts" auth="false" export="true">
+             invoke="predictDemandForProducts" auth="true" export="true">
       <attribute name="productIds" mode="IN" type="List" optional="false"/>
       <attribute name="horizonDays" mode="IN" type="Integer" optional="true"/>
       <attribute name="results" mode="OUT" type="List"/>
+    </service>
+
+    <service name="predictDemandForAllProducts" default-entity-name="DemandForecast"
+             engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
+             invoke="predictDemandForAllProducts" auth="true" export="true">
+      <attribute name="horizonDays" mode="IN" type="Integer" optional="true"/>
+      <attribute name="maxProducts" mode="IN" type="Integer" optional="true"/>
+      <attribute name="results" mode="OUT" type="List"/>
+    </service>
+
+    <service name="enqueueDemandForecasts" default-entity-name="DemandForecast"
+             engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
+             invoke="enqueueDemandForecasts" auth="true" export="true">
+      <attribute name="horizonDays" mode="IN" type="Integer" optional="true"/>
+      <attribute name="maxProducts" mode="IN" type="Integer" optional="true"/>
+    </service>
+
+    <service name="enqueueDemandForecastsPersistent" default-entity-name="DemandForecast"
+             engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
+             invoke="enqueueDemandForecastsPersistent" auth="true" export="true">
+      <attribute name="horizonDays" mode="IN" type="Integer" optional="true"/>
+      <attribute name="maxProducts" mode="IN" type="Integer" optional="true"/>
+    </service>
+
+    <service name="exportDemandDataBundle"
+             engine="groovy" location="component://product/groovy/ai/ExportDemandData.groovy"
+             invoke="exportDemandDataBundle" auth="true" export="true">
+      <attribute name="statusId" mode="IN" type="String" optional="true"/>
+      <attribute name="fromDate" mode="IN" type="Timestamp" optional="true"/>
+      <attribute name="toDate" mode="IN" type="Timestamp" optional="true"/>
+      <attribute name="daysBack" mode="IN" type="Integer" optional="true"/>
+    </service>
+
+    <service name="exportDemandDataDelta"
+             engine="groovy" location="component://product/groovy/ai/ExportDemandData.groovy"
+             invoke="exportDemandDataDelta" auth="true" export="true">
+      <attribute name="daysBack" mode="IN" type="Integer" optional="true"/>
+    </service>
+
+    <service name="exportOrderLinesForDemand"
+             engine="groovy" location="component://product/groovy/ai/ExportDemandData.groovy"
+             invoke="exportOrderLinesForDemand" auth="true" export="true">
+      <attribute name="statusId" mode="IN" type="String" optional="true"/>
+      <attribute name="fromDate" mode="IN" type="Timestamp" optional="true"/>
+      <attribute name="toDate" mode="IN" type="Timestamp" optional="true"/>
+      <attribute name="daysBack" mode="IN" type="Integer" optional="true"/>
+    </service>
+
+    <service name="exportProductsForDemand"
+             engine="groovy" location="component://product/groovy/ai/ExportDemandData.groovy"
+             invoke="exportProductsForDemand" auth="true" export="true">
+    </service>
+
+    <service name="exportProductFacilityForDemand"
+             engine="groovy" location="component://product/groovy/ai/ExportDemandData.groovy"
+             invoke="exportProductFacilityForDemand" auth="true" export="true">
+    </service>
+
+    <service name="exportInventoryItemsForDemand"
+             engine="groovy" location="component://product/groovy/ai/ExportDemandData.groovy"
+             invoke="exportInventoryItemsForDemand" auth="true" export="true">
+    </service>
+
+    <service name="getDemandForecastDashboard"
+             engine="groovy" location="component://product/groovy/ai/DemandForecastDashboard.groovy"
+             invoke="getDemandForecastDashboard" auth="true" export="true">
+      <attribute name="evalDays" mode="IN" type="Integer" optional="true"/>
+      <attribute name="forecastCount" mode="OUT" type="Long"/>
+      <attribute name="lastRunDate" mode="OUT" type="Timestamp"/>
+      <attribute name="avgStockGap" mode="OUT" type="Double"/>
+      <attribute name="maxStockGap" mode="OUT" type="Double"/>
+      <attribute name="evaluation" mode="OUT" type="Map"/>
+      <attribute name="topGaps" mode="OUT" type="List"/>
     </service>
   </model>
 </service-resource>

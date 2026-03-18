@@ -13,7 +13,8 @@ if (!del) {
 
 def dispatcher = binding.hasVariable('dispatcher') ? dispatcher : ServiceContainer.getLocalDispatcher('default', del)
 
-def ctx = [productId: pid, horizonDays: horizon]
+def userLogin = del.findOne("UserLogin", [userLoginId: "system"], true)
+def ctx = [productId: pid, horizonDays: horizon, userLogin: userLogin]
 println "Calling predictDemandForProduct with ${ctx}"
 
 def res = dispatcher.runSync('predictDemandForProduct', ctx)

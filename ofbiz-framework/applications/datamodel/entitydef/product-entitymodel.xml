@@ -5025,6 +5025,18 @@ under the License.
     <field name="horizonDays" type="numeric" not-null="true"/>
     <field name="avgDaily" type="floating-point" not-null="true"/>
     <field name="total" type="floating-point" not-null="true"/>
+    <field name="intervalLow" type="floating-point"/>
+    <field name="intervalHigh" type="floating-point"/>
+    <field name="historyDays" type="numeric"/>
+    <field name="modelVersion" type="short-varchar"/>
+    <field name="dataStart" type="date-time"/>
+    <field name="dataEnd" type="date-time"/>
+    <field name="onHand" type="floating-point"/>
+    <field name="availableToPromise" type="floating-point"/>
+    <field name="minStock" type="floating-point"/>
+    <field name="reorderQty" type="floating-point"/>
+    <field name="stockGap" type="floating-point"/>
+    <field name="forecastMethod" type="short-varchar"/>
     <field name="runDate" type="date-time" not-null="true"/>
     <field name="source" type="short-varchar"/>
     <prim-key field="forecastId"/>

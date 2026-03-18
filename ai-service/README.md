@@ -4,6 +4,7 @@ AI Demand Service (FastAPI)
 Purpose
 - Standalone microservice to forecast demand from OFBiz exports (CSV), keeping AI decoupled from the ERP.
 - Endpoint: `/predict-demand` returns a forecast for a product.
+ - Production endpoints: `/predict-demand`, `/predict-demand/batch`, `/metadata`, `/metrics`.
 
 Data inputs (expected paths)
 - `../ofbiz-framework/runtime/data/export/order_lines.csv`
@@ -20,7 +21,30 @@ Usage example (after server is running)
 ```
 curl -X POST http://localhost:8000/predict-demand \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: <your-key>" \
   -d '{"product_id": "WG-1111", "horizon_days": 14}'
+```
+
+Batch usage
+```
+curl -X POST http://localhost:8000/predict-demand/batch \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: <your-key>" \
+  -d '{"product_ids": ["WG-1111", "WG-1112"], "horizon_days": 14}'
+```
+
+Configuration (env vars)
+- `AI_OFBIZ_BASE_DIR` (default: `../ofbiz-framework`)
+- `AI_WINDOW_DAYS` (default: 30)
+- `AI_MAX_HORIZON_DAYS` (default: 365)
+- `AI_MODEL_VERSION` (default: 0.1.0)
+- `AI_API_KEY` (optional; if set, required via `X-API-Key`)
+- `AI_RATE_LIMIT_PER_MIN` (optional; if set > 0, rate limit per IP)
+
+Evaluation
+```
+curl -X GET "http://localhost:8000/evaluation?eval_days=30" \
+  -H "X-API-Key: <your-key>"
 ```
 
 Model approach (simple, transparent)

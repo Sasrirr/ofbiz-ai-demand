@@ -38,6 +38,18 @@ The following file contains information about the data model changes in the Apac
 |=======================================================
 |Entity                 |Field   |Action |IsPK |Revision
 | Person | maritalStatusTypeId | Added | No | 109c496e
+| DemandForecast | intervalLow | Added | No | ai-demand
+| DemandForecast | intervalHigh | Added | No | ai-demand
+| DemandForecast | historyDays | Added | No | ai-demand
+| DemandForecast | modelVersion | Added | No | ai-demand
+| DemandForecast | dataStart | Added | No | ai-demand
+| DemandForecast | dataEnd | Added | No | ai-demand
+| DemandForecast | onHand | Added | No | ai-demand
+| DemandForecast | availableToPromise | Added | No | ai-demand
+| DemandForecast | minStock | Added | No | ai-demand
+| DemandForecast | reorderQty | Added | No | ai-demand
+| DemandForecast | stockGap | Added | No | ai-demand
+| DemandForecast | forecastMethod | Added | No | ai-demand
 
 |=======================================================
 
@@ -45,6 +57,8 @@ The following file contains information about the data model changes in the Apac
 1.  Migration service *migratePersonMaritalStatusType* is implemented to migrate the
     *oldMaritalStatusEnumId* field to *maritalStatusTypeId* on entity *Person*. +
     (More detail at https://issues.apache.org/jira/browse/OFBIZ-13329[OFBIZ-13329])
+2.  Migration service *upgradeDemandForecastDefaults* is implemented to backfill new
+    fields on entity *DemandForecast* (intervals, stock metadata, method).
 
 
 == Changes with OFBiz 24
