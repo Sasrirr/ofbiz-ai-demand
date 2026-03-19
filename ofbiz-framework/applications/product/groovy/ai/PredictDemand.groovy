@@ -7,7 +7,11 @@ import org.apache.ofbiz.base.util.Debug
 import java.net.HttpURLConnection
 import java.sql.Date
 
-// Overloads to be resilient when dispatcher passes different arg lists
+// OFBiz Groovy services may invoke script methods with either bound variables or explicit args.
+Map predictDemandForProduct() {
+    return doPredict(resolveDispatchContext(), resolveServiceContext())
+}
+
 Map predictDemandForProduct(DispatchContext dctx, Map context) {
     return doPredict(dctx, context)
 }
@@ -15,6 +19,10 @@ Map predictDemandForProduct(DispatchContext dctx, Map context) {
 Map predictDemandForProduct(Map context) {
     DispatchContext dctx = context?.dispatcher?.dispatchContext ?: context?.dctx
     return doPredict(dctx, context)
+}
+
+Map predictDemandForProducts() {
+    return predictDemandForProducts(resolveDispatchContext(), resolveServiceContext())
 }
 
 Map predictDemandForProducts(DispatchContext dctx, Map context) {
@@ -48,10 +56,14 @@ Map predictDemandForProducts(DispatchContext dctx, Map context) {
     return [responseMessage: "success", results: results]
 }
 
+Map predictDemandForAllProducts() {
+    return predictDemandForAllProducts(resolveDispatchContext(), resolveServiceContext())
+}
+
 Map predictDemandForAllProducts(DispatchContext dctx, Map context) {
     Integer horizonDays = (context.horizonDays ?: 14) as Integer
     Integer maxProducts = (context.maxProducts ?: 500) as Integer
-    if (!dctx) return error("No DispatchContext provided")
+    if (!dctx) return serviceError("No DispatchContext provided")
     Delegator delegator = dctx.delegator
     def now = UtilDateTime.nowTimestamp()
 
@@ -66,13 +78,17 @@ Map predictDemandForAllProducts(DispatchContext dctx, Map context) {
             .collect { it.productId }
 
     if (products.isEmpty()) {
-        return error("No products found to forecast")
+        return serviceError("No products found to forecast")
     }
     return predictDemandForProducts(dctx, [productIds: products, horizonDays: horizonDays])
 }
 
+Map enqueueDemandForecasts() {
+    return enqueueDemandForecasts(resolveDispatchContext(), resolveServiceContext())
+}
+
 Map enqueueDemandForecasts(DispatchContext dctx, Map context) {
-    if (!dctx) return error("No DispatchContext provided")
+    if (!dctx) return serviceError("No DispatchContext provided")
     def dispatcher = dctx.dispatcher
     Integer horizonDays = (context.horizonDays ?: 14) as Integer
     Integer maxProducts = (context.maxProducts ?: 500) as Integer
@@ -81,11 +97,15 @@ Map enqueueDemandForecasts(DispatchContext dctx, Map context) {
     return [responseMessage: "success", message: "Forecast job queued"]
 }
 
+Map enqueueDemandForecastsPersistent() {
+    return enqueueDemandForecastsPersistent(resolveDispatchContext(), resolveServiceContext())
+}
+
 Map enqueueDemandForecastsPersistent(DispatchContext dctx, Map context) {
-    if (!dctx) return error("No DispatchContext provided")
+    if (!dctx) return serviceError("No DispatchContext provided")
     def dispatcher = dctx.dispatcher
     def userLogin = context.userLogin
-    if (!userLogin) return error("Missing userLogin")
+    if (!userLogin) return serviceError("Missing userLogin")
 
     Integer horizonDays = (context.horizonDays ?: 14) as Integer
     Integer maxProducts = (context.maxProducts ?: 500) as Integer
@@ -95,11 +115,11 @@ Map enqueueDemandForecastsPersistent(DispatchContext dctx, Map context) {
 }
 
 private Map doPredict(DispatchContext dctx, Map context) {
-    if (!dctx) return error("No DispatchContext provided")
+    if (!dctx) return serviceError("No DispatchContext provided")
     Delegator delegator = dctx.delegator
     String productId = context.productId
     Integer horizonDays = (context.horizonDays ?: 14) as Integer
-    if (!productId) return error("Missing productId")
+    if (!productId) return serviceError("Missing productId")
 
     def payload = [product_id: productId, horizon_days: horizonDays]
     def apiRes = callAiApi("/predict-demand", payload)
@@ -109,15 +129,36 @@ private Map doPredict(DispatchContext dctx, Map context) {
         if (cached) {
             return [responseMessage: "success", cached: true] + cached
         }
-        return error(apiRes.error)
+        return serviceError(apiRes.error)
     }
     def result = persistForecast(dctx, apiRes.data)
     result.horizonDays = horizonDays
     return [responseMessage: "success"] + result
 }
 
-private Map error(String msg) {
+private Map serviceError(String msg) {
     return [responseMessage: "error", errorMessage: msg]
+}
+
+private DispatchContext resolveDispatchContext() {
+    if (binding?.hasVariable("dctx")) {
+        return binding.getVariable("dctx") as DispatchContext
+    }
+    if (binding?.hasVariable("dispatcher")) {
+        return binding.getVariable("dispatcher")?.dispatchContext as DispatchContext
+    }
+    if (binding?.hasVariable("context")) {
+        def ctx = binding.getVariable("context") as Map
+        return (ctx?.dispatcher?.dispatchContext ?: ctx?.dctx) as DispatchContext
+    }
+    return null
+}
+
+private Map resolveServiceContext() {
+    if (binding?.hasVariable("context")) {
+        return (binding.getVariable("context") as Map) ?: [:]
+    }
+    return [:]
 }
 
 private Map getLatestForecast(DispatchContext dctx, String productId, Integer horizonDays) {

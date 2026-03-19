@@ -1,10 +1,16 @@
 import org.apache.ofbiz.entity.util.EntityQuery
+import org.apache.ofbiz.entity.condition.EntityCondition
+import org.apache.ofbiz.entity.condition.EntityOperator
 import org.apache.ofbiz.service.DispatchContext
 import org.apache.ofbiz.base.util.UtilDateTime
 import org.apache.ofbiz.base.util.Debug
 
 import java.time.format.DateTimeFormatter
 import java.sql.Timestamp
+
+Map exportDemandDataBundle() {
+    return exportDemandDataBundle(resolveDispatchContext(), resolveServiceContext())
+}
 
 Map exportDemandDataBundle(DispatchContext dctx, Map context) {
     def res1 = exportOrderLinesForDemand(dctx, context)
@@ -18,35 +24,47 @@ Map exportDemandDataBundle(DispatchContext dctx, Map context) {
     return [responseMessage: "success"]
 }
 
+Map exportDemandDataDelta() {
+    return exportDemandDataDelta(resolveDispatchContext(), resolveServiceContext())
+}
+
 Map exportDemandDataDelta(DispatchContext dctx, Map context) {
     Integer daysBack = (context.daysBack ?: 1) as Integer
     def ctx = [daysBack: daysBack]
     return exportDemandDataBundle(dctx, ctx)
 }
 
+Map exportOrderLinesForDemand() {
+    return exportOrderLinesForDemand(resolveDispatchContext(), resolveServiceContext())
+}
+
 Map exportOrderLinesForDemand(DispatchContext dctx, Map context) {
     def delegator = dctx?.delegator
     if (!delegator) return [responseMessage: "error", errorMessage: "No delegator available"]
 
-    def statusId = context.statusId ?: "ORDER_COMPLETED"
+    def statusId = context.statusId
     Timestamp fromDate = parseDate(context.fromDate)
     Timestamp toDate = parseDate(context.toDate)
     Integer daysBack = (context.daysBack ?: 0) as Integer
     if (!fromDate && daysBack > 0) {
         fromDate = UtilDateTime.addDaysToTimestamp(UtilDateTime.nowTimestamp(), -daysBack)
     }
-    def fmt = DateTimeFormatter.ISO_LOCAL_DATE
+    List conditions = []
+    if (statusId) {
+        conditions << EntityCondition.makeCondition("statusId", EntityOperator.EQUALS, statusId)
+    }
+    if (fromDate) {
+        conditions << EntityCondition.makeCondition("orderDate", EntityOperator.GREATER_THAN_EQUAL_TO, fromDate)
+    }
+    if (toDate) {
+        conditions << EntityCondition.makeCondition("orderDate", EntityOperator.LESS_THAN_EQUAL_TO, toDate)
+    }
 
     def query = EntityQuery.use(delegator)
             .from("OrderHeader")
-            .where("statusId", statusId)
             .orderBy("orderDate")
-
-    if (fromDate) {
-        query = query.where("orderDate", org.apache.ofbiz.entity.condition.EntityOperator.GREATER_THAN_EQUAL_TO, fromDate)
-    }
-    if (toDate) {
-        query = query.where("orderDate", org.apache.ofbiz.entity.condition.EntityOperator.LESS_THAN_EQUAL_TO, toDate)
+    if (!conditions.isEmpty()) {
+        query = query.where(conditions)
     }
 
     def headers = query.queryList()
@@ -59,16 +77,22 @@ Map exportOrderLinesForDemand(DispatchContext dctx, Map context) {
                 .queryList()
                 .each { oi ->
                     def facilityId = ""
-                    def shipGrp = EntityQuery.use(delegator)
-                            .from("OrderItemShipGroup")
-                            .where("orderId", oi.orderId, "shipGroupSeqId", oi.shipGroupSeqId)
+                    def shipGrpAssoc = EntityQuery.use(delegator)
+                            .from("OrderItemShipGroupAssoc")
+                            .where("orderId", oi.orderId, "orderItemSeqId", oi.orderItemSeqId)
                             .queryFirst()
-                    if (shipGrp) {
-                        facilityId = shipGrp.facilityId ?: ""
+                    if (shipGrpAssoc) {
+                        def shipGrp = EntityQuery.use(delegator)
+                                .from("OrderItemShipGroup")
+                                .where("orderId", oi.orderId, "shipGroupSeqId", shipGrpAssoc.shipGroupSeqId)
+                                .queryFirst()
+                        if (shipGrp) {
+                            facilityId = shipGrp.facilityId ?: ""
+                        }
                     }
                     rows << [
                             oi.orderId,
-                            oh.orderDate.format(fmt),
+                            formatDate(oh.orderDate),
                             oi.productId ?: "",
                             sanitizeQuantity(oi.quantity),
                             facilityId
@@ -79,6 +103,10 @@ Map exportOrderLinesForDemand(DispatchContext dctx, Map context) {
     writeCsv("order_lines.csv", ["orderId", "orderDate", "productId", "quantity", "facilityId"], rows)
     Debug.logInfo("Exported ${rows.size()} order lines for demand data", "AI_DEMAND")
     return [responseMessage: "success", exported: rows.size()]
+}
+
+Map exportProductsForDemand() {
+    return exportProductsForDemand(resolveDispatchContext(), resolveServiceContext())
 }
 
 Map exportProductsForDemand(DispatchContext dctx, Map context) {
@@ -101,6 +129,10 @@ Map exportProductsForDemand(DispatchContext dctx, Map context) {
     return [responseMessage: "success", exported: rows.size()]
 }
 
+Map exportProductFacilityForDemand() {
+    return exportProductFacilityForDemand(resolveDispatchContext(), resolveServiceContext())
+}
+
 Map exportProductFacilityForDemand(DispatchContext dctx, Map context) {
     def delegator = dctx?.delegator
     if (!delegator) return [responseMessage: "error", errorMessage: "No delegator available"]
@@ -111,12 +143,16 @@ Map exportProductFacilityForDemand(DispatchContext dctx, Map context) {
                 pf.facilityId ?: "",
                 pf.minimumStock ?: "",
                 pf.reorderQuantity ?: "",
-                formatDate(pf.lastInventoryCountDate)
+                ""
         ]
     }
     writeCsv("product_facility.csv", ["productId", "facilityId", "minimumStock", "reorderQuantity", "lastInventoryCountDate"], rows)
     Debug.logInfo("Exported ${rows.size()} product facility rows for demand data", "AI_DEMAND")
     return [responseMessage: "success", exported: rows.size()]
+}
+
+Map exportInventoryItemsForDemand() {
+    return exportInventoryItemsForDemand(resolveDispatchContext(), resolveServiceContext())
 }
 
 Map exportInventoryItemsForDemand(DispatchContext dctx, Map context) {
@@ -186,4 +222,25 @@ private String sanitizeQuantity(Object quantity) {
     }
     if (q < 0) q = 0
     return q.toString()
+}
+
+private DispatchContext resolveDispatchContext() {
+    if (binding?.hasVariable("dctx")) {
+        return binding.getVariable("dctx") as DispatchContext
+    }
+    if (binding?.hasVariable("dispatcher")) {
+        return binding.getVariable("dispatcher")?.dispatchContext as DispatchContext
+    }
+    if (binding?.hasVariable("context")) {
+        def ctx = binding.getVariable("context") as Map
+        return (ctx?.dispatcher?.dispatchContext ?: ctx?.dctx) as DispatchContext
+    }
+    return null
+}
+
+private Map resolveServiceContext() {
+    if (binding?.hasVariable("context")) {
+        return (binding.getVariable("context") as Map) ?: [:]
+    }
+    return [:]
 }

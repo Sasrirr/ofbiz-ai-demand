@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<service-resource>
-  <model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/service-config-1.0.xsd">
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://ofbiz.apache.org/dtds/services.xsd">
     <description>AI demand forecast integration</description>
+    <vendor>OFBiz</vendor>
+    <version>1.0</version>
 
     <service name="predictDemandForProduct" default-entity-name="DemandForecast"
              engine="groovy" location="component://product/groovy/ai/PredictDemand.groovy"
@@ -95,5 +96,4 @@
       <attribute name="evaluation" mode="OUT" type="Map"/>
       <attribute name="topGaps" mode="OUT" type="List"/>
     </service>
-  </model>
-</service-resource>
+</services>

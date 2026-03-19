@@ -30,6 +30,7 @@ WORKDIR /builder
 # Add and run the gradle wrapper to trigger a download if needed.
 COPY --chmod=755 gradle/init-gradle-wrapper.sh gradle/
 COPY --chmod=755 gradlew .
+RUN ["sed", "-i", "s/\\r$//", "gradle/init-gradle-wrapper.sh", "gradlew"]
 RUN ["sed", "-i", "s/shasum/sha1sum/g", "gradle/init-gradle-wrapper.sh"]
 RUN ["gradle/init-gradle-wrapper.sh"]
 
@@ -91,6 +92,7 @@ RUN echo '${uiLabelMap.CommonJavaVersion}:' "$(java --version | grep Runtime | s
 # Leave executable scripts owned by root and non-writable, addressing sonarcloud rule,
 # https://sonarcloud.io/organizations/apache/rules?open=docker%3AS6504&rule_key=docker%3AS6504
 COPY --chmod=555 docker/docker-entrypoint.sh docker/send_ofbiz_stop_signal.sh .
+RUN ["/bin/sh", "-c", "sed -i 's/\\r$//' /ofbiz/docker-entrypoint.sh /ofbiz/send_ofbiz_stop_signal.sh"]
 
 COPY --chmod=444 docker/disable-component.xslt .
 

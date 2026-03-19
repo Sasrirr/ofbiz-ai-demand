@@ -15,13 +15,29 @@ This repo integrates Apache OFBiz with a production‑ready AI demand forecastin
 ## Quick Start (Dev)
 1. Start OFBiz (see OFBiz README for full setup).
 2. Export data:
-   - `gradlew "ofbiz --script=runtime/script/exportDemandData.groovy"`
+   - Open `https://localhost:8443/catalog/control/runDemandExport`
 3. Run AI service:
    - `cd ai-service`
    - `pip install -r requirements.txt`
    - `uvicorn main:app --reload --port 8000`
 4. Forecast:
    - `gradlew "ofbiz --script=runPredictDemand.groovy" -DproductId=WG-1111 -DhorizonDays=14`
+
+## Local Docker Dev
+Use the top-level Compose stack to run OFBiz and the AI service together.
+
+1. Copy `.env.example` to `.env`.
+2. Start both services:
+   - `docker-compose up --build`
+3. Open OFBiz at `https://localhost:8443/catalog/control/main`
+   - Demo login: `admin` / `ofbiz`
+4. Trigger export from OFBiz:
+   - `https://localhost:8443/catalog/control/runDemandExport`
+5. The CSV bundle is written to `ofbiz-framework/runtime/data/export/` on the host and is automatically visible to the AI service.
+6. Reload the AI service after a fresh export:
+   - `POST http://localhost:8000/reload` with header `X-API-Key: <your AI_API_KEY>`
+7. Test a forecast:
+   - `POST http://localhost:8000/predict-demand`
 
 ## Production Quick Start
 1. Copy `.env.example` to `.env` and set `AI_API_KEY`.
@@ -88,15 +104,14 @@ Follow the official OFBiz setup steps from `ofbiz-framework/README.adoc`. At min
 ### 3) Export Data from OFBiz
 Exports land in `ofbiz-framework/runtime/data/export/`.
 
-Full export:
-```
-gradlew "ofbiz --script=runtime/script/exportDemandData.groovy"
-```
-
-Delta export (default `daysBack=1`):
-```
-gradlew "ofbiz --script=runtime/script/exportDemandData.groovy" -DdaysBack=1
-```
+Working local path:
+1. Start OFBiz and sign in to Catalog.
+2. Open `/catalog/control/runDemandExport`.
+3. This writes:
+   - `order_lines.csv`
+   - `products.csv`
+   - `product_facility.csv`
+   - `inventory_items.csv`
 
 ### 4) Run AI Service (Dev)
 ```

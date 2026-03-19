@@ -1,5 +1,21 @@
-version: "3.9"
 services:
+  ofbiz:
+    build:
+      context: ./ofbiz-framework
+      target: demo
+    ports:
+      - "8443:8443"
+    environment:
+      JAVA_TOOL_OPTIONS: >-
+        -Dai.demand.url=http://ai-demand:8000
+        -Dai.demand.apiKey=${AI_API_KEY:-change-me}
+        -Dai.demand.timeoutMs=8000
+    volumes:
+      - ./ofbiz-framework/runtime/data/export:/ofbiz/runtime/data/export
+    depends_on:
+      ai-demand:
+        condition: service_healthy
+
   ai-demand:
     build:
       context: ./ai-service
